@@ -2,21 +2,21 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: CloudWatch Logs to Lambda Integration
 
 Parameters:
-  LambdaName:
-    Type: String
-    Description: The name of the Lambda function
-  LambdaDescription:
-    Type: String
-    Description: The description of the Lambda function
   PrivateKey:
     Type: String
-    Description: The private key for the Lambda function
+    Description: Please enter your AskEli Private Key
+  S3Bucket:
+    Type: String
+    Description: The S3 bucket containing the Lambda function
+  S3Key:
+    Type: String
+    Description: The S3 key containing the Lambda function
 
 Resources:
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub '${LambdaName}-role'
+      RoleName: 'askeli-logstream-role'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -25,7 +25,7 @@ Resources:
               Service: lambda.amazonaws.com
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: !Sub '${LambdaName}-policy'
+        - PolicyName: 'askeli-logstream-policy'
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -37,18 +37,18 @@ Resources:
                   - logs:DescribeLogStreams
                   - logs:DescribeLogGroups
                   - logs:PutRetentionPolicy
-                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${LambdaName}:*'
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/askeli-logstream:*'
       Tags:
         - Key: Description
-          Value: !Ref LambdaDescription
+          Value: 'Stream logs to the AskEli Platform'
         - Key: Name
-          Value: !Ref LambdaName
+          Value: askeli-logstream
 
   LambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Ref LambdaName
-      Description: !Ref LambdaDescription
+      FunctionName: askeli-logstream
+      Description: 'Stream logs to the AskEli Platform'
       Handler: bootstrap
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
@@ -71,13 +71,13 @@ Resources:
   CloudWatchLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${LambdaName}'
+      LogGroupName: !Sub '/aws/lambda/askeli-logstream'
       RetentionInDays: 3
       Tags:
         - Key: Description
-          Value: !Ref LambdaDescription
+          Value: 'Stream logs to the AskEli Platform'
         - Key: Name
-          Value: !Ref LambdaName
+          Value: askeli-logstream
 
 Outputs:
   LambdaFunctionArn:

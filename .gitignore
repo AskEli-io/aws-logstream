@@ -1,0 +1,12 @@
+node_modules
+.env
+build
+archive.zip
+.terraform
+terraform.tfvars
+.DS_Store
+env
+__pycache__
+.local
+.vscode
+.terraform.lock.hcl
