@@ -42,8 +42,7 @@ func init() {
 }
 
 // HandleRequest is the main handler function for the AWS Lambda function.
-// It processes CloudWatch log events, decodes and uncompresses the log data,
-// and sends the processed data to an external endpoint.
+// It processes the CloudWatch logs event, collects log chunks, and sends them to an external endpoint.
 func HandleRequest(event events.CloudwatchLogsEvent) error {
 	// Parse the CloudWatch logs event
 	cloudwatchLogsData, err := event.AWSLogs.Parse()
