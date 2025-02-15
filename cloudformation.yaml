@@ -25,12 +25,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
                   - logs:PutLogEvents
-                  - logs:DescribeLogStreams
-                  - logs:DescribeLogGroups
-                  - logs:PutRetentionPolicy
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/askeli-logstream:*"
       Tags:
         - Key: Description

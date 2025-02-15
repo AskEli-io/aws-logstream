@@ -1,0 +1,39 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.19'
+
+      - name: Build Go application
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o bootstrap *.go
+          zip bootstrap.zip bootstrap
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Upload bootstrap.zip to S3
+        run: |
+          aws s3 cp bootstrap.zip s3://askeli-public-cloudformation-templates/aws-logstream/bootstrap.zip
+
+      - name: Upload cloudformation.yaml to S3
+        run: |
+          aws s3 cp cloudformation.yaml s3://askeli-public-cloudformation-templates/aws-logstream/cloudformation.yaml
