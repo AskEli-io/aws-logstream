@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudWatch Logs to Lambda Integration
+
+Parameters:
+  LambdaName:
+    Type: String
+    Description: The name of the Lambda function
+  LambdaDescription:
+    Type: String
+    Description: The description of the Lambda function
+  PrivateKey:
+    Type: String
+    Description: The private key for the Lambda function
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${LambdaName}-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub '${LambdaName}-policy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogStreams
+                  - logs:DescribeLogGroups
+                  - logs:PutRetentionPolicy
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${LambdaName}:*'
+      Tags:
+        - Key: Description
+          Value: !Ref LambdaDescription
+        - Key: Name
+          Value: !Ref LambdaName
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref LambdaName
+      Description: !Ref LambdaDescription
+      Handler: bootstrap
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref S3Key
+      Runtime: provided.al2023
+      Timeout: 10
+      Environment:
+        Variables:
+          PRIVATE_KEY: !Ref PrivateKey
+
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: !Sub 'logs.${AWS::Region}.amazonaws.com'
+      SourceArn: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+
+  CloudWatchLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${LambdaName}'
+      RetentionInDays: 3
+      Tags:
+        - Key: Description
+          Value: !Ref LambdaDescription
+        - Key: Name
+          Value: !Ref LambdaName
+
+Outputs:
+  LambdaFunctionArn:
+    Description: The ARN of the Lambda function
+    Value: !GetAtt LambdaFunction.Arn
