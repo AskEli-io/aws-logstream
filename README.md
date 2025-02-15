@@ -1,1 +1,1 @@
-https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=test&templateURL=https://askeli-public-cloudformation-templates.s3.us-west-2.amazonaws.com/cloudformation.yaml
+https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=test&templateURL=https://askeli-public-cloudformation-templates.s3.us-west-2.amazonaws.com/aws-logstream/cloudformation.yaml
