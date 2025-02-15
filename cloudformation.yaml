@@ -5,6 +5,10 @@ Parameters:
   PrivateKey:
     Type: String
     Description: Please enter your AskEli Private Key
+  Version:
+    Type: String
+    Description: Version of AskEli LogStream
+    Default: "1.0.0"
 
 Resources:
   LambdaExecutionRole:
@@ -42,7 +46,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         S3Bucket: "askeli-public-cloudformation-templates"
-        S3Key: "aws-logstream/bootstrap.zip"
+        S3Key: !Sub "aws-logstream/${Version}.zip"
       Runtime: provided.al2023
       Timeout: 10
       Environment:
