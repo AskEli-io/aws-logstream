@@ -1,4 +1,4 @@
-module log-stream
+module aws-logstream
 
 go 1.23.5
 

@@ -2,11 +2,8 @@ package main
 
 import (
 	"bytes"
-	"compress/gzip"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -49,42 +46,17 @@ func init() {
 // and sends the processed data to an external endpoint.
 func HandleRequest(event events.CloudwatchLogsEvent) error {
 	// Parse the CloudWatch logs event
-	test, err := event.AWSLogs.Parse()
+	cloudwatchLogsData, err := event.AWSLogs.Parse()
 	if err != nil {
 		return fmt.Errorf("failed to parse AWSLogs: %v", err)
 	}
 
-	log.Printf("Log group: %+v", test)
-
-	// Decode the base64 encoded log data
-	compressedPayload, err := base64.StdEncoding.DecodeString(event.AWSLogs.Data)
-	if err != nil {
-		return fmt.Errorf("failed to decode base64: %v", err)
-	}
-
-	// Create a gzip reader to uncompress the log data
-	reader, err := gzip.NewReader(bytes.NewReader(compressedPayload))
-	if err != nil {
-		return fmt.Errorf("failed to create gzip reader: %v", err)
-	}
-	defer reader.Close()
-
-	// Read the uncompressed log data
-	uncompressedPayload, err := io.ReadAll(reader)
-	if err != nil {
-		return fmt.Errorf("failed to read uncompressed data: %v", err)
-	}
-
-	// Unmarshal the JSON log data into a CloudwatchLogsData struct
-	var decodedData events.CloudwatchLogsData
-	if err := json.Unmarshal(uncompressedPayload, &decodedData); err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %v", err)
-	}
+	log.Printf("Log group: %+v", cloudwatchLogsData)
 
 	// Collect all log chunks into a single string
 	var chunks [][]string
 	var current []string
-	for _, logEvent := range decodedData.LogEvents {
+	for _, logEvent := range cloudwatchLogsData.LogEvents {
 		current = append(current, logEvent.Message)
 		if strings.Contains(logEvent.Message, "REPORT RequestId:") {
 			chunks = append(chunks, current)
@@ -94,8 +66,8 @@ func HandleRequest(event events.CloudwatchLogsEvent) error {
 
 	// Use the timestamp of the first log event, or the current time if no events are present
 	timestamp := time.Now().UnixMilli()
-	if len(decodedData.LogEvents) > 0 {
-		timestamp = decodedData.LogEvents[0].Timestamp
+	if len(cloudwatchLogsData.LogEvents) > 0 {
+		timestamp = cloudwatchLogsData.LogEvents[0].Timestamp
 	}
 
 	// Send each chunk as a separate HTTP request
@@ -107,7 +79,7 @@ func HandleRequest(event events.CloudwatchLogsEvent) error {
 
 		// Create a Result struct with the processed log data
 		results := Result{
-			CloudwatchLogsData: decodedData,
+			CloudwatchLogsData: cloudwatchLogsData,
 			Timestamp:          timestamp,
 			Message:            message,
 			LogType:            "aws_log_group",
