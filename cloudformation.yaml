@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CloudWatch Logs to Lambda Integration
+Description: "Stream logs to the AskEli Platform"
 
 Parameters:
   PrivateKey:
@@ -47,7 +47,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         S3Bucket: "askeli-public-cloudformation-templates"
-        S3Key: "/aws-logstream/bootstrap"
+        S3Key: "aws-logstream/bootstrap"
       Runtime: provided.al2023
       Timeout: 10
       Environment:
