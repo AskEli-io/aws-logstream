@@ -8,7 +8,7 @@ Parameters:
   Version:
     Type: String
     Description: Version of AskEli LogStream
-    Default: "1.0.0"
+    Default: "1.0.1"
 
 Resources:
   LambdaExecutionRole:
